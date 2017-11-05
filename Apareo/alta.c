@@ -1,35 +1,49 @@
 #include <stdio.h>
-#include "persona.h"
 #include <string.h>
+#include "persona.h"
 
 int main(){
     FILE* archivoAlta;
     FILE* archivoPersonas;
-    File* archivoNuevo;
+    FILE* archivoNuevo;
     TPersona personaADarDeAlta;
-    Tpersona personaYaExistente;
+    TPersona personaYaExistente;
     
-    archivoAlta = fopen("r", "archivoAlta.dat");
-    archivoPersonas = fopen("r", "archivoPersonas.dat");
-    archivoNuevo = fopen("w", "archivoNuevo.dat");
+    archivoAlta = fopen("archivoAltas.dat", "r");
+    archivoPersonas = fopen("archivoPersonas.dat","r");
+    archivoNuevo = fopen("archivoNuevo.dat", "w");
     
-    fread(&personaYaExistente, sizeof(Persona), 1, archivoPersonas);
-    fread(&personaADarDeAlta, sizeof(Persona), 1, archivoAlta);
+    fread(&personaYaExistente, sizeof(TPersona), 1, archivoPersonas);
+    fread(&personaADarDeAlta, sizeof(TPersona), 1, archivoAlta);
 
-    while(!eof(personaADarDeAlta)){
-        while(personaYaExistente.codigoDeDgi < personaADarDeAlta.codigoDeDgi &&
-                !eof(archivoPersonas)){
-            fwrite(&personaYaExistente, sizeof(Persona), 1, archivoNuevo);
-            fread(&personaYaExistente, sizeof(Persona), 1, archivoPersonas);
+    //Mientras me queden personas a dar de alta
+    while(!feof(archivoAlta)){
+        
+        //Mientras que no encontre a la primera persona con mayor numeroDeDgi
+        //y si todavia tengo personas del archivo original
+        //Debo seguir grabando las personas que ya estaban en el archivo original
+        
+        while(personaYaExistente.numeroDeDgi < personaADarDeAlta.numeroDeDgi &&
+                !feof(archivoPersonas)){
+            
+            fwrite(&personaYaExistente, sizeof(TPersona), 1, archivoNuevo);
+            fread(&personaYaExistente, sizeof(TPersona), 1, archivoPersonas);
+        
         }
         
-        fwrite(&personaADarDeAlta, sizeof(Persona), 1, archivoNuevo);
-        fread(&personaADarDeAlta, sizeof(Persona), 1, archivoAlta);
+        //Cuando ya encontre a la persona que tiene mayor DGI, o no quedan mas de las originales
+        //grabo la que iba a dar de alta.
+        
+        fwrite(&personaADarDeAlta, sizeof(TPersona), 1, archivoNuevo);
+        fread(&personaADarDeAlta, sizeof(TPersona), 1, archivoAlta);
     }
     
-    while(!eof(archivoPersonas)){
-        fwrite(&personaYaExistente, sizeof(Persona), 1, archivoNuevo);
-        fread(&personaYaExistente, sizeof(Persona), 1, archivoPersonas);
+    
+    //Puede que haya dado de altas todas las personas que queria, y queden mas de las originales
+    //Entonces si no se termino el archivo personas, grabo las que me quedan.
+    while(!feof(archivoPersonas)){
+        fwrite(&personaYaExistente, sizeof(TPersona), 1, archivoNuevo);
+        fread(&personaYaExistente, sizeof(TPersona), 1, archivoPersonas);
     }
     
     fclose(archivoAlta);
@@ -39,7 +53,3 @@ int main(){
     remove("archivoPersonas.dat");
     rename("archivoNuevo.dat", "archivoPersonas.dat");
 }
-
-/*blanco con amarillo arriba
- * blanco con rojo a la derecha y naranja a la izquierda
- * Anotado en mente de Delfi
